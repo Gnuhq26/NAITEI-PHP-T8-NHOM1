@@ -108,7 +108,8 @@ class CustomerController extends Controller
         }
         
         // Check if order can be cancelled
-        if (!in_array($order->status, ['pending', 'confirmed'])) {
+
+        if (!in_array($order->status, ['pending', 'confirmed', 'approved'])) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
