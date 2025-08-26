@@ -445,6 +445,31 @@ class AdminController extends Controller
             return redirect()->route('admin.orders')->with('error', __('Cannot change status of delivered or cancelled orders.'));
         }
 
+        // define valid status transitions
+        $validTransitions = [
+            'pending' => ['approved', 'rejected'],
+            'approved' => ['delivering'],
+            'rejected' => [], // rejected orders cannot be changed
+            'delivering' => ['delivered'],
+            'delivered' => [], // delivered orders cannot be changed
+            'cancelled' => [] // cancelled orders cannot be changed (but only customers can cancel)
+        ];
+
+        $currentStatus = $order->status;
+        $newStatus = $validated['status'];
+
+        if (!in_array($newStatus, $validTransitions[$currentStatus] ?? [])) {
+            $errorMessage = match($currentStatus) {
+                'pending' => __('From Pending status, you can only approve or reject the order.'),
+                'approved' => __('From Approved status, you can only change to Delivering.'),
+                'rejected' => __('Rejected orders cannot be changed.'),
+                'delivering' => __('From Delivering status, you can only mark as Delivered.'),
+                default => __('Invalid status transition.')
+            };
+            
+            return redirect()->route('admin.orders')->with('error', $errorMessage);
+        }
+
         DB::transaction(function () use ($order, $validated) {
             $oldStatus = $order->status;
             $newStatus = $validated['status'];
@@ -469,7 +494,6 @@ class AdminController extends Controller
             'rejected' => __('Order has been rejected'),
             'delivering' => __('Order is now being delivered'),
             'delivered' => __('Order has been marked as delivered'),
-            'cancelled' => __('Order has been cancelled'),
             default => __('Order status updated')
         };
 

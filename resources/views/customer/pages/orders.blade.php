@@ -395,13 +395,13 @@
 }
 
 .status-delivering {
-    background: #d4edda;
-    color: #155724;
+    background: #d1ecf1;
+    color: #0c5460;
 }
 
 .status-delivered {
-    background: #d1ecf1;
-    color: #0c5460;
+    background: #d4edda;
+    color: #155724;
 }
 
 .status-cancelled {

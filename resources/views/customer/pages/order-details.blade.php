@@ -269,11 +269,6 @@
     color: #721c24;
 }
 
-.status-delivering {
-    background: #fff3cd;
-    color: #856404;
-}
-
 .status-delivered {
     background: #d4edda;
     color: #155724;
