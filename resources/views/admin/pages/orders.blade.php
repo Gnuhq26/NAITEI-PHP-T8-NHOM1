@@ -136,15 +136,24 @@
                                 @csrf
                                 @method('PATCH')
                                 <select name="status" class="form-control order-status-select" style="width:auto;" 
-                                        {{ in_array($status, ['delivered', 'cancelled']) ? 'disabled' : '' }}>
-                                    <option value="pending" {{ $status==='pending' ? 'selected' : '' }}>{{ __('Pending') }}</option>
-                                    <option value="approved" {{ $status==='approved' ? 'selected' : '' }}>{{ __('Approve') }}</option>
-                                    <option value="rejected" {{ $status==='rejected' ? 'selected' : '' }}>{{ __('Reject') }}</option>
-                                    <option value="delivering" {{ $status==='delivering' ? 'selected' : '' }}>{{ __('Delivering') }}</option>
-                                    <option value="delivered" {{ $status==='delivered' ? 'selected' : '' }}>{{ __('Delivered') }}</option>
+                                        {{ in_array($status, ['delivered', 'cancelled', 'rejected']) ? 'disabled' : '' }}>
+                                    @if($status === 'pending')
+                                        <option value="pending" selected>{{ __('Pending') }}</option>
+                                        <option value="approved">{{ __('Approve') }}</option>
+                                        <option value="rejected">{{ __('Reject') }}</option>
+                                    @elseif($status === 'approved')
+                                        <option value="approved" selected>{{ __('Approved') }}</option>
+                                        <option value="delivering">{{ __('Delivering') }}</option>
+                                    @elseif($status === 'delivering')
+                                        <option value="delivering" selected>{{ __('Delivering') }}</option>
+                                        <option value="delivered">{{ __('Delivered') }}</option>
+                                    @else
+                                        {{-- rejected, delivered, cancelled -> show current status only --}}
+                                        <option value="{{ $status }}" selected>{{ $statusText }}</option>
+                                    @endif
                                 </select>
                                 <button type="submit" class="btn btn-success btn-sm order-status-submit" 
-                                        {{ in_array($status, ['delivered', 'cancelled']) ? 'disabled' : '' }}>
+                                        {{ in_array($status, ['delivered', 'cancelled', 'rejected']) ? 'disabled' : '' }}>
                                     <i class="fas fa-save"></i> {{ __('Update') }}
                                 </button>
                             </form>
@@ -371,13 +380,13 @@
                     
                     const newStatus = statusSelect.value;
                     
-                    if (['delivered', 'cancelled'].includes(currentStatus)) {
-                        adminPanel.openModal('orderStatusErrorModal');
+                    // if status is not changing -> do nothing
+                    if (currentStatus === newStatus) {
                         return;
                     }
                     
-                    // check if new status is final and show warning
-                    if (['delivered', 'cancelled'].includes(newStatus) && newStatus !== currentStatus) {
+                    // Show warning for final status transitions
+                    if (['delivered'].includes(newStatus)) {
                         adminPanel.openModal('orderStatusWarningModal');
                         
                         const confirmBtn = document.getElementById('confirmStatusChangeBtn');

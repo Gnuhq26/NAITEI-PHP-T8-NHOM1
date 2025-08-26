@@ -484,7 +484,7 @@
                 <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                     <p style="margin: 0; color: #856404; font-weight: 500;">
                         <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
-                        {{ __('Once you change the status to "Delivered" or "Cancelled", you will not be able to change it again.') }}
+                        {{ __('Once you change the status to "Delivered", you will not be able to change it again.') }}
                     </p>
                 </div>
                 <p style="margin: 10px 0; color: #333;">
