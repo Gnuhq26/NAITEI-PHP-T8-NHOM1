@@ -8,6 +8,7 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\NotificationController;
 
@@ -38,6 +39,7 @@ Route::middleware(['auth', 'check.user.activation'])->group(function () {
 
 // Customer routes - require authentication
 Route::middleware(['auth', 'check.user.activation'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/home', [CustomerController::class, 'home'])->name('home');
     Route::get('/categories', [CustomerController::class, 'categories'])->name('categories');
     Route::get('/products/{category}', [CustomerController::class, 'products'])->name('products');
     Route::get('/orders', [CustomerController::class, 'orders'])->name('orders');
@@ -53,9 +55,15 @@ Route::middleware(['auth', 'check.user.activation'])->prefix('customer')->name('
     Route::delete('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
+    // Delivery info routes
+    Route::get('/delivery-info', [CheckoutController::class, 'deliveryInfo'])->name('delivery.info');
+    Route::post('/delivery-info', [CheckoutController::class, 'storeDeliveryInfo'])->name('delivery.store');
+
     // Checkout routes
     Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+
 
     // Feedback routes
     Route::get('/feedbacks/{product}', [FeedbackController::class, 'index'])->name('feedbacks');

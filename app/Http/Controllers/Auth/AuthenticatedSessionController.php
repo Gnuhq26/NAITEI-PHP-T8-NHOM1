@@ -36,8 +36,8 @@ class AuthenticatedSessionController extends Controller
             // Admin - redirect to admin dashboard
             return redirect()->intended('/admin/dashboard');
         } else {
-            // Customer - redirect to categories page
-            return redirect()->intended('/customer/categories');
+            // Customer - redirect to home page
+            return redirect()->intended('/customer/home');
         }
     }
 

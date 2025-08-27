@@ -12,6 +12,21 @@ class CustomerController extends Controller
 {
     const ORDER_STATUSES_ACTIVE = ['pending', 'approved', 'delivering'];
     const ORDER_STATUSES_HISTORY = ['rejected', 'cancelled', 'delivered'];
+    
+    /**
+     * Display the home page for customers
+     */
+    public function home()
+    {
+        // Get featured categories (limit to 6)
+        $featuredCategories = Category::withCount('products')
+                                     ->orderBy('products_count', 'desc')
+                                     ->limit(6)
+                                     ->get();
+        
+        return view('customer.pages.home', compact('featuredCategories'));
+    }
+    
     /**
      * Display the categories page for customers
      */

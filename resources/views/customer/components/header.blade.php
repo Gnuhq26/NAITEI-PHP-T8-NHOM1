@@ -1,11 +1,12 @@
 <header class="header">
     <div class="header-container">
-        <a href="{{ route('customer.categories') }}" class="logo">
+        <a href="{{ route('customer.home') }}" class="logo">
             <i class="fas fa-couch"></i>
             Furniro
         </a>
         
         <nav class="nav-menu">
+            <a href="{{ route('customer.home') }}" class="{{ request()->routeIs('customer.home') ? 'active' : '' }}">{{ __('Home') }}</a>
             <a href="{{ route('customer.categories') }}" class="{{ request()->routeIs('customer.categories') ? 'active' : '' }}">{{ __('Categories') }}</a>
             <a href="{{ route('customer.orders') }}" class="{{ request()->routeIs('customer.orders*') ? 'active' : '' }}">{{ __('Orders') }}</a>
             <a href="{{ route('customer.about') }}" class="{{ request()->routeIs('customer.about') ? 'active' : '' }}">{{ __('About') }}</a>

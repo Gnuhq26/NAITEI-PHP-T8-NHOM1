@@ -11,6 +11,8 @@
             <i class="fas fa-chevron-right"></i>
             <a href="{{ route('customer.cart.index') }}">{{ __('Cart') }}</a>
             <i class="fas fa-chevron-right"></i>
+            <a href="{{ route('customer.delivery.info') }}">{{ __('Delivery Info') }}</a>
+            <i class="fas fa-chevron-right"></i>
             <span>{{ __('Checkout') }}</span>
         </div>
     </div>
@@ -40,47 +42,100 @@
     </div>
 @endif
 
-<div class="cart-wrapper">
-    <div class="cart-main">
-        <div class="cart-table">
-            <div class="cart-header">
-                <div class="col-product">{{ __('Product') }}</div>
-                <div class="col-price">{{ __('Price') }}</div>
-                <div class="col-quantity">{{ __('Quantity') }}</div>
-                <div class="col-subtotal">{{ __('Subtotal') }}</div>
+<div class="checkout-wrapper">
+    <div class="checkout-main">
+        <!-- Order Items -->
+        <div class="section-card">
+            <h3>{{ __('Order Items') }}</h3>
+            <div class="cart-table">
+                <div class="cart-header">
+                    <div class="col-product">{{ __('Product') }}</div>
+                    <div class="col-price">{{ __('Price') }}</div>
+                    <div class="col-quantity">{{ __('Quantity') }}</div>
+                    <div class="col-subtotal">{{ __('Subtotal') }}</div>
+                </div>
+                
+                @foreach($cart as $item)
+                <div class="cart-row">
+                    <div class="col-product">
+                        <img src="{{ isset($item['image']) ? asset($item['image']) : asset('images/default-product.svg') }}" alt="{{ $item['name'] }}">
+                        <div class="info">
+                            <div class="name">{{ $item['name'] }}</div>
+                            <div class="sku">#{{ $item['id'] }}</div>
+                        </div>
+                    </div>
+                    <div class="col-price">{{ number_format($item['price'], 0, '.', ',') }} {{ __('VND') }}</div>
+                    <div class="col-quantity">x {{ $item['quantity'] }}</div>
+                    <div class="col-subtotal">{{ number_format($item['price'] * $item['quantity'], 0, '.', ',') }} {{ __('VND') }}</div>
+                </div>
+                @endforeach
             </div>
+        </div>
 
-            @foreach($cart as $item)
-            <div class="cart-row">
-                <div class="col-product">
-                    <img src="{{ isset($item['image']) ? asset($item['image']) : asset('images/default-product.svg') }}" alt="{{ $item['name'] }}">
-                    <div class="info">
-                        <div class="name">{{ $item['name'] }}</div>
-                        <div class="sku">#{{ $item['product_id'] }}</div>
+        <!-- Delivery Information -->
+        <div class="section-card">
+            <h3>{{ __('Delivery Information') }}</h3>
+            <div class="delivery-info-display">
+                <div class="info-row">
+                    <span class="label">{{ __('Full Name') }}:</span>
+                    <span class="value">{{ $deliveryInfo['user_name'] }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">{{ __('Email') }}:</span>
+                    <span class="value">{{ $deliveryInfo['email'] }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">{{ __('Phone Number') }}:</span>
+                    <span class="value">{{ $deliveryInfo['phone_number'] }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">{{ __('Address') }}:</span>
+                    <span class="value">
+                        {{ $deliveryInfo['ward'] ? $deliveryInfo['ward'] . ', ' : '' }}{{ $deliveryInfo['district'] }}, {{ $deliveryInfo['city'] }}, {{ $deliveryInfo['country'] }}
+                    </span>
+                </div>
+            </div>
+            <a href="{{ route('customer.delivery.info') }}" class="edit-link">{{ __('Edit Delivery Info') }}</a>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="section-card">
+            <h3>{{ __('Payment Method') }}</h3>
+            <form action="{{ route('customer.checkout.store') }}" method="POST" id="checkoutForm">
+                @csrf
+                <div class="payment-methods">
+                    <div class="payment-option">
+                        <input type="radio" id="cod" name="payment_method" value="cod" checked style="display: none;">
+                        <label for="cod" class="payment-label">
+                            <div class="payment-icon">
+                                <i class="fas fa-hand-holding-usd"></i>
+                            </div>
+                            <div class="payment-details">
+                                <h4>{{ __('Cash on Delivery (COD)') }}</h4>
+                                <p>{{ __('Pay when you receive your order') }}</p>
+                            </div>
+                        </label>
                     </div>
                 </div>
-                <div class="col-price">{{ number_format($item['price'], 0, '.', ',') }} {{ __('VND') }}</div>
-                <div class="col-quantity">x {{ $item['quantity'] }}</div>
-                <div class="col-subtotal">{{ number_format($item['price'] * $item['quantity'], 0, '.', ',') }} {{ __('VND') }}</div>
-            </div>
-            @endforeach
+            </form>
         </div>
     </div>
 
-    <div class="cart-summary">
+    <div class="checkout-summary">
         <h3>{{ __('Order Summary') }}</h3>
         <div class="summary-row">
             <span>{{ __('Items') }}</span>
             <span>{{ $totalQuantity ?? 0 }}</span>
         </div>
+        <div class="summary-row">
+            <span>{{ __('Delivery') }}</span>
+            <span class="free-delivery">{{ __('Free') }}</span>
+        </div>
         <div class="summary-row total">
             <span>{{ __('Total') }}</span>
             <span>{{ number_format($totalPrice ?? 0, 0, '.', ',') }} {{ __('VND') }}</span>
         </div>
-        <form action="{{ route('customer.checkout.store') }}" method="POST" id="checkoutForm">
-            @csrf
-            <button type="button" class="btn-primary full" onclick="showPlaceOrderModal()">{{ __('Place Order') }}</button>
-        </form>
+        <button type="button" class="btn-primary full" onclick="showPlaceOrderModal()">{{ __('Place Order') }}</button>
     </div>
 </div>
 
@@ -128,10 +183,32 @@
     padding-left: 20px;
 }
 
-.cart-wrapper {
+.checkout-wrapper {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 24px;
+}
+
+.checkout-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.section-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 24px;
+}
+
+.section-card h3 {
+    color: #3A3A3A;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #F9F1E7;
+    padding-bottom: 12px;
 }
 
 .cart-table {
@@ -186,11 +263,120 @@
     margin-top: 2px;
 }
 
-.cart-summary {
+/* Delivery Information Display */
+.delivery-info-display {
+    background: #F9F1E7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row .label {
+    font-weight: 600;
+    color: #3A3A3A;
+    min-width: 120px;
+}
+
+.info-row .value {
+    color: #666;
+    text-align: right;
+    flex: 1;
+}
+
+.edit-link {
+    color: #B88E2F;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.edit-link:hover {
+    text-decoration: underline;
+}
+
+/* Payment Methods */
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.payment-option {
+    position: relative;
+}
+
+.payment-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.payment-label {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border: 2px solid #E5E5E5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.payment-option input[type="radio"]:checked + .payment-label {
+    border-color: #B88E2F;
+    background: rgba(184, 142, 47, 0.05);
+}
+
+.payment-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #F9F1E7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    font-size: 20px;
+    color: #B88E2F;
+}
+
+.payment-details h4 {
+    margin: 0 0 4px 0;
+    color: #3A3A3A;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.payment-details p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.checkout-summary {
     background: #F9F1E7;
     padding: 24px;
     border-radius: 8px;
     height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.free-delivery {
+    color: #10B981;
+    font-weight: 600;
 }
 
 .summary-row {
@@ -223,8 +409,22 @@
 }
 
 @media (max-width: 900px) {
-    .cart-wrapper {
+    .checkout-wrapper {
         grid-template-columns: 1fr;
+    }
+    
+    .checkout-summary {
+        position: static;
+    }
+    
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .info-row .value {
+        text-align: left;
     }
 }
 </style>

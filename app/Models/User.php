@@ -30,6 +30,11 @@ class User extends Authenticatable
         'password',
         'role_id',
         'is_activate',
+        'phone_number',
+        'country',
+        'city',
+        'district',
+        'ward',
     ];
 
     /**
@@ -82,6 +87,11 @@ class User extends Authenticatable
     public function statusOrders(): HasMany
     {
         return $this->hasMany(StatusOrder::class, 'admin_id');
+    }
+
+    public function getDeliveryInfosAttribute()
+    {
+        return DeliveryInfo::whereIn('order_id', $this->orders->pluck('order_id'))->get();
     }
 
     public function notifications(): HasMany

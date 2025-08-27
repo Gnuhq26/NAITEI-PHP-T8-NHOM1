@@ -80,7 +80,7 @@
         <!-- Orders List -->
         <div class="orders-list">
             @foreach($orders as $order)
-            <div class="order-card">
+            <div class="order-card @if(request('highlight') == $order->order_id) order-highlight @endif" id="order-{{ $order->order_id }}">
                 <div class="order-header">
                     <div class="order-info">
                         <h3 class="order-number">{{ __('Order') }} #{{ $order->order_id }}</h3>
@@ -639,6 +639,27 @@
         height: 50px;
     }
 }
+
+/* Order Highlight Animation */
+.order-highlight {
+    animation: orderHighlight 3s ease-in-out;
+    border: 2px solid #B88E2F !important;
+    box-shadow: 0 8px 25px rgba(184, 142, 47, 0.3) !important;
+}
+
+@keyframes orderHighlight {
+    0% {
+        background-color: rgba(184, 142, 47, 0.1);
+        transform: scale(1.02);
+    }
+    50% {
+        background-color: rgba(184, 142, 47, 0.05);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
 </style>
 @endpush
 
@@ -667,6 +688,17 @@ document.addEventListener('DOMContentLoaded', function() {
         dateToInput.addEventListener('change', function() {
             dateFromInput.setAttribute('max', this.value);
         });
+    }
+
+    // Auto scroll to highlighted order
+    const highlightOrder = document.querySelector('.order-highlight');
+    if (highlightOrder) {
+        setTimeout(() => {
+            highlightOrder.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }, 300); // Small delay to ensure page is fully loaded
     }
 });
 </script>
