@@ -21,17 +21,24 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\DB;
 use App\Models\StatusOrder;
+use App\Repositories\CategoryRepository;
 
 class AdminController extends Controller
 {
-    private const CATEGORY_IMAGE_DIR = 'images/categories';
     private const PRODUCT_IMAGE_DIR = 'images/products';
+
+    protected $categoryRepository;
+
+    public function __construct(CategoryRepository $categoryRepository)
+    {
+        $this->categoryRepository = $categoryRepository;
+    }
 
     public function dashboard()
     {
         $stats = [
             'total_users' => User::count(),
-            'total_categories' => Category::count(),
+            'total_categories' => $this->categoryRepository->count(),
             'total_products' => Product::count(),
             'total_orders' => Order::count(),
             'pending_orders' => Order::where('order_id', '>', 0)->count(),
@@ -45,7 +52,7 @@ class AdminController extends Controller
     {
         $stats = [
             'total_users' => User::count(),
-            'total_categories' => Category::count(),
+            'total_categories' => $this->categoryRepository->count(),
             'total_products' => Product::count(),
             'total_orders' => Order::count(),
             'pending_orders' => Order::where('order_id', '>', 0)->count(),
@@ -221,86 +228,63 @@ class AdminController extends Controller
     public function categories()
     {
         // count products in each category
-        $categories = Category::withCount('products')->orderBy('updated_at', 'desc')->paginate(10);
+        $categories = $this->categoryRepository->getCategoriesWithProductCount(10);
         return view('admin.pages.categories', compact('categories'));
     }
 
     public function storeCategory(StoreCategoryRequest $request)
     {
-        // $request->validate([
-        //     'name' => 'required|string|max:255|unique:categories,name',
-        //     'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        // ]);
-
         $validated = $request->validated();
-        $imagePath = null;
-
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            // $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-            $allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'svg'];
-            $extension = $image->guessExtension();
-            if (!in_array($extension, $allowedExtensions)) {
-                return redirect()->back()->withErrors(['image' => 'Invalid image extension.']);
+        
+        try {
+            // if there is an image, validate it.
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $validated['image'] = $image;
+            } else {
+                $validated['image'] = null; // No image uploaded
             }
-            $imageName = Str::uuid() . '.' . $extension;
-            $image->move(public_path(self::CATEGORY_IMAGE_DIR), $imageName);
-            $imagePath = self::CATEGORY_IMAGE_DIR . '/' . $imageName;
-            $validated['image'] = $imagePath; 
-            
+    
+            $this->categoryRepository->createCategory($validated);
+    
+            return redirect()->route('admin.categories')->with('success', 'Category added successfully.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()->withErrors(['image' => $e->getMessage()])->withInput();
         }
-
-        Category::create($validated);
-
-        return redirect()->route('admin.categories')->with('success', 'Category added successfully.');
     }
 
     public function updateCategory(UpdateCategoryRequest $request, Category $category)
     {
         $validated = $request->validated();
 
-        if ($request->hasFile('image')) {
-            // Xóa image cũ nếu có
-            if ($category->image && File::exists(public_path($category->image))) {
-                File::delete(public_path($category->image));
-            }
-            
-            $image = $request->file('image');
-            // $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-            $imageName = Str::uuid() . '.' . $image->extension();
-            $image->move(public_path(self::CATEGORY_IMAGE_DIR), $imageName);
-            $validated['image'] = self::CATEGORY_IMAGE_DIR . '/' . $imageName;
+        try {
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $validated['image'] = $image;
+            } 
+            $this->categoryRepository->updateCategory($category->category_id, $validated);
+            return redirect()->route('admin.categories')->with('success', 'Category updated.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()->withErrors(['image' => $e->getMessage()])->withInput();
         }
-
-        $category->update($validated);
-        return redirect()->route('admin.categories')->with('success', 'Category updated.');
     }
 
     public function deleteCategory(Category $category)
     {
-        // Prevent deletion if category has associated products
-        if ($category->products()->count() > 0) {
+        if (!$this->categoryRepository->deleteCategory($category->category_id)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete category with associated products.'
             ], 400);
         }
-        // Xóa image file nếu có
-        if ($category->image) {
-            // Nếu dùng public/images/categories/
-            if (File::exists(public_path($category->image))) {
-                File::delete(public_path($category->image));
-            }
-        }
-        
-        $category->delete();
+
         return response()->json(['success' => true]);
     }
 
     public function products()
     {
         $products = Product::with('category')->orderBy('updated_at', 'desc')->paginate(10); // paginate products (10 per page)
-        $categories = Category::all();
+        $categories = $this->categoryRepository->getAllCategories();
         return view('admin.pages.products', compact('products', 'categories'));
     }
 
@@ -380,7 +364,7 @@ class AdminController extends Controller
         }
         
         $products = $productsQuery->paginate(10);
-        $categories = Category::all();
+        $categories = $this->categoryRepository->getAllCategories();
         
         // ensure that search parameters are kept in pagination links
         $products->appends($request->only(['query', 'category_id']));
