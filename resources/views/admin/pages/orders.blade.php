@@ -20,7 +20,7 @@
         </div>
     @endif
 
-    @if($errors->any())
+    @if(isset($errors) && $errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin: 0 20px 20px 20px;">
             <i class="fas fa-exclamation-triangle"></i>
             <ul style="margin: 0; padding-left: 20px;">

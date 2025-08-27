@@ -20,6 +20,7 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\StatusOrder;
 use App\Repositories\CategoryRepository;
 
@@ -309,8 +310,10 @@ class AdminController extends Controller
         return redirect()->route('admin.products')->with('success', 'Product added successfully.');
     }
 
-    public function updateProduct(UpdateProductRequest $request, Product $product)
+    public function updateProduct(UpdateProductRequest $request, $productId)
     {
+        $product = Product::where('product_id', $productId)->firstOrFail();
+        
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
@@ -329,8 +332,10 @@ class AdminController extends Controller
         return redirect()->route('admin.products')->with('success', 'Product updated successfully.');
     }
 
-    public function deleteProduct(Product $product)
-    {
+    public function deleteProduct($productId)
+    { 
+        $product = Product::where('product_id', $productId)->firstOrFail();
+        
         // delete the old image
         if ($product->image) {
             if (File::exists(public_path($product->image))) {
@@ -503,7 +508,7 @@ class AdminController extends Controller
     }
 
     public function toggleUserActivation(User $user)
-    {
+    {   
         // only super admin can toggle user activation
         if (auth()->user()->email !== Role::SUPER_ADMIN) {
             return response()->json([
