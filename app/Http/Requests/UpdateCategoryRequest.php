@@ -23,12 +23,15 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
+        $category = $this->route('category');
+        $categoryId = $category instanceof Category ? $category->category_id : $category;
+        
         return [
             'name' => [
                 'required',
                 'string', 
                 'max:255',
-                Rule::unique('categories', 'name')->ignore($this->route('category')->category_id, 'category_id')
+                Rule::unique('categories', 'name')->ignore($categoryId, 'category_id')
             ],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];

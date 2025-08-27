@@ -163,7 +163,7 @@
     }
     
     document.addEventListener('DOMContentLoaded', () => {
-        @if ($errors->any())
+        @if (isset($errors) && $errors->any())
             let errorMessages = [];
             @foreach ($errors->all() as $error)
                 errorMessages.push("{{ $error }}");
