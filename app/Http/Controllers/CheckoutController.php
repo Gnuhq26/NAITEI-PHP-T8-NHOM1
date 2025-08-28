@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\DeliveryInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Events\NewOrderPlaced;
@@ -13,6 +14,68 @@ use Illuminate\Support\Facades\Redis;
 class CheckoutController extends Controller
 {
     /**
+     * Show delivery information form
+     */
+    public function deliveryInfo(Request $request)
+    {
+        $cart = $request->session()->get('cart', []);
+        if (empty($cart)) {
+            return redirect()->route('customer.cart.index')->with('info', __('Your cart is empty.'));
+        }
+
+        $user = $request->user();
+        
+        // Pre-fill delivery info from user data
+        $deliveryInfo = [
+            'user_name' => $user->name ?? '',
+            'email' => $user->email ?? '',
+            'phone_number' => $user->phone_number ?? '',
+            'country' => $user->country ?? '',
+            'city' => $user->city ?? '',
+            'district' => $user->district ?? '',
+            'ward' => $user->ward ?? '',
+        ];
+
+        $totalQuantity = array_sum(array_map(function ($item) {
+            return (int) ($item['quantity'] ?? 0);
+        }, $cart));
+
+        $totalPrice = array_reduce($cart, function ($carry, $item) {
+            $quantity = (int) ($item['quantity'] ?? 0);
+            $price = (float) ($item['price'] ?? 0);
+            return $carry + ($quantity * $price);
+        }, 0.0);
+
+        return view('customer.pages.delivery-info', compact('cart', 'deliveryInfo', 'totalQuantity', 'totalPrice'));
+    }
+
+    /**
+     * Store delivery information in session and redirect to checkout
+     */
+    public function storeDeliveryInfo(Request $request)
+    {
+        $request->validate([
+            'user_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone_number' => 'required|string|max:20',
+            'country' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'district' => 'required|string|max:255',
+            'ward' => 'nullable|string',
+        ]);
+
+        // Store delivery info in session (for current order only)
+        $request->session()->put('delivery_info', $request->only([
+            'user_name', 'email', 'phone_number', 'country', 'city', 'district', 'ward'
+        ]));
+
+        // Do NOT update user profile - keep user data unchanged
+        // User profile will only change when user updates their personal profile
+
+        return redirect()->route('customer.checkout.create');
+    }
+
+    /**
      * Show the checkout page with cart summary
      */
     public function create(Request $request)
@@ -20,6 +83,12 @@ class CheckoutController extends Controller
         $cart = $request->session()->get('cart', []);
         if (empty($cart)) {
             return redirect()->route('customer.cart.index')->with('success', __('Your cart is empty.'));
+        }
+
+        // Check if delivery info is provided
+        $deliveryInfo = $request->session()->get('delivery_info');
+        if (!$deliveryInfo) {
+            return redirect()->route('customer.delivery.info')->with('info', __('Please provide delivery information first.'));
         }
 
         $totalQuantity = array_sum(array_map(function ($item) {
@@ -32,7 +101,7 @@ class CheckoutController extends Controller
             return $carry + ($quantity * $price);
         }, 0.0);
 
-        return view('customer.pages.checkout', compact('cart', 'totalQuantity', 'totalPrice'));
+        return view('customer.pages.checkout', compact('cart', 'deliveryInfo', 'totalQuantity', 'totalPrice'));
     }
 
     /**
@@ -40,11 +109,28 @@ class CheckoutController extends Controller
      */
     public function store(Request $request)
     {
+        // Remove payment method validation - only COD supported now
+
         $cart = $request->session()->get('cart', []);
         if (empty($cart)) {
             return redirect()->route('customer.cart.index')->with('info', __('Your cart is empty.'));
         }
 
+        // Check if delivery info is provided
+        $deliveryInfo = $request->session()->get('delivery_info');
+        if (!$deliveryInfo) {
+            return redirect()->route('customer.delivery.info')->with('info', __('Please provide delivery information first.'));
+        }
+
+        // Process COD payment directly
+        return $this->processCODPayment($request);
+    }
+
+
+
+    private function processCODPayment(Request $request)
+    {
+        $cart = $request->session()->get('cart', []);
         $productIds = array_map('intval', array_keys($cart));
 
         // Load products keyed by primary key (product_id)
@@ -69,15 +155,34 @@ class CheckoutController extends Controller
         }
 
         $userId = (int) $request->user()->getKey();
+        $newOrderId = null;
 
-        DB::transaction(function () use ($cart, $products, $computedTotal, $userId, $request) {
+        DB::transaction(function () use ($cart, $products, $computedTotal, $userId, $request, &$newOrderId) {
             // Create order
             $order = Order::create([
                 'customer_id' => $userId,
                 'order_date' => now()->toDateString(),
                 'total_cost' => $computedTotal,
                 'status' => 'pending',
+
             ]);
+            
+            $newOrderId = $order->order_id;
+
+            // Create delivery info if exists in session
+            $deliveryInfo = $request->session()->get('delivery_info');
+            if ($deliveryInfo) {
+                DeliveryInfo::create([
+                    'order_id' => $order->order_id,
+                    'user_name' => $deliveryInfo['user_name'],
+                    'email' => $deliveryInfo['email'],
+                    'phone_number' => $deliveryInfo['phone_number'],
+                    'country' => $deliveryInfo['country'],
+                    'city' => $deliveryInfo['city'],
+                    'district' => $deliveryInfo['district'],
+                    'ward' => $deliveryInfo['ward'] ?? null,
+                ]);
+            }
 
             // Create items and decrement stock
             foreach ($cart as $pid => $item) {
@@ -102,17 +207,17 @@ class CheckoutController extends Controller
                     }
                 }
             }
-
-            // Clear cart
-            $request->session()->forget('cart');
+          
+            // Clear cart and delivery info from session
+            $request->session()->forget(['cart', 'delivery_info']);
 
             // Eager load the user relationship before dispatching the event
             $order->load('user');
 
             // Dispatch the event after the order is successfully created
             event(new NewOrderPlaced($order));
-        });
-
-        return redirect()->route('customer.orders')->with('success', __('Order placed successfully.'));
+        });   
+             
+        return redirect()->route('customer.orders', ['highlight' => $newOrderId])->with('success', __('Order placed successfully.'));
     }
 } 

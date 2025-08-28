@@ -1,6 +1,6 @@
 @extends('customer.layouts.app')
 
-@section('title', 'Shop - Furniro')
+@section('title', __('Categories') . ' - Furniro')
 
 @section('hero')
 <section class="hero-section">
