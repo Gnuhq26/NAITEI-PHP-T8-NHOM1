@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\DeliveryInfo;
+use App\Services\ShippingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Events\NewOrderPlaced;
@@ -13,6 +14,13 @@ use Illuminate\Support\Facades\Redis;
 
 class CheckoutController extends Controller
 {
+    protected $shippingService;
+
+    public function __construct(ShippingService $shippingService)
+    {
+        $this->shippingService = $shippingService;
+    }
+
     /**
      * Show delivery information form
      */
@@ -46,7 +54,9 @@ class CheckoutController extends Controller
             return $carry + ($quantity * $price);
         }, 0.0);
 
-        return view('customer.pages.delivery-info', compact('cart', 'deliveryInfo', 'totalQuantity', 'totalPrice'));
+        $shippingInfo = $this->shippingService->getShippingInfo($totalPrice);
+
+        return view('customer.pages.delivery-info', compact('cart', 'deliveryInfo', 'totalQuantity', 'totalPrice', 'shippingInfo'));
     }
 
     /**
@@ -101,7 +111,9 @@ class CheckoutController extends Controller
             return $carry + ($quantity * $price);
         }, 0.0);
 
-        return view('customer.pages.checkout', compact('cart', 'deliveryInfo', 'totalQuantity', 'totalPrice'));
+        $shippingInfo = $this->shippingService->getShippingInfo($totalPrice);
+
+        return view('customer.pages.checkout', compact('cart', 'deliveryInfo', 'totalQuantity', 'totalPrice', 'shippingInfo'));
     }
 
     /**
@@ -154,15 +166,19 @@ class CheckoutController extends Controller
             $computedTotal += $quantity * (float) $product->price;
         }
 
+        $shippingInfo = $this->shippingService->getShippingInfo($computedTotal);
+        $finalTotal = $shippingInfo['total'];
+
         $userId = (int) $request->user()->getKey();
         $newOrderId = null;
 
-        DB::transaction(function () use ($cart, $products, $computedTotal, $userId, $request, &$newOrderId) {
+        DB::transaction(function () use ($cart, $products, $computedTotal, $shippingInfo, $finalTotal, $userId, $request, &$newOrderId) {
             // Create order
             $order = Order::create([
                 'customer_id' => $userId,
                 'order_date' => now()->toDateString(),
-                'total_cost' => $computedTotal,
+                'total_cost' => $finalTotal, // Tổng tiền bao gồm phí ship
+                'shipping_fee' => $shippingInfo['shipping_fee'], // Phí ship riêng biệt
                 'status' => 'pending',
 
             ]);

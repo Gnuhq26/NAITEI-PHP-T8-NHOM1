@@ -94,9 +94,35 @@
 			<span>{{ __('Subtotal') }}</span>
 			<span>{{ number_format($totalPrice ?? 0, 0, '.', ',') }} {{ __('VND') }}</span>
 		</div>
+		
+		@if(isset($shippingInfo))
+			<div class="summary-row">
+				<span>{{ __('Shipping Fee') }}</span>
+				<span class="{{ $shippingInfo['is_free_shipping'] ? 'free-shipping' : '' }}">
+					@if($shippingInfo['is_free_shipping'])
+						{{ __('Free') }}
+					@else
+						{{ number_format($shippingInfo['shipping_fee'], 0, '.', ',') }} {{ __('VND') }}
+					@endif
+				</span>
+			</div>
+			
+			@if(isset($amountForFreeShipping) && $amountForFreeShipping > 0)
+				<div class="free-shipping-notice">
+					<i class="fas fa-truck"></i>
+					{{ __('Add') }} {{ number_format($amountForFreeShipping, 0, '.', ',') }} {{ __('VND') }} {{ __('more for free shipping!') }}
+				</div>
+			@elseif($shippingInfo['is_free_shipping'])
+				<div class="free-shipping-notice success">
+					<i class="fas fa-check-circle"></i>
+					{{ __('You got free shipping!') }}
+				</div>
+			@endif
+		@endif
+		
 		<div class="summary-row total">
 			<span>{{ __('Total') }}</span>
-			<span>{{ number_format($totalPrice ?? 0, 0, '.', ',') }} {{ __('VND') }}</span>
+			<span>{{ number_format($shippingInfo['total'] ?? $totalPrice ?? 0, 0, '.', ',') }} {{ __('VND') }}</span>
 		</div>
 		<br>
 		<a href="{{ route('customer.delivery.info') }}" class="btn-primary full">{{ __('Proceed to Delivery Info') }}</a>
@@ -295,6 +321,32 @@
 .btn-primary.full {
 	width: 100%;
 	margin-top: 16px;
+}
+
+.free-shipping {
+	color: #16a34a !important;
+	font-weight: 600;
+}
+
+.free-shipping-notice {
+	background: #fef3c7;
+	color: #92400e;
+	padding: 12px;
+	border-radius: 6px;
+	margin: 12px 0;
+	font-size: 14px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.free-shipping-notice.success {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.free-shipping-notice i {
+	font-size: 16px;
 }
 @media (max-width: 900px) {
     .cart-wrapper {

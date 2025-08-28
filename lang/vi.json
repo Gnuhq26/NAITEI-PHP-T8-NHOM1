@@ -686,5 +686,8 @@
     "From Pending status, you can only approve or reject the order.": "Từ trạng thái Chờ Xử Lý, bạn chỉ có thể phê duyệt hoặc từ chối đơn hàng.",
     "From Approved status, you can only change to Delivering.": "Từ trạng thái Đã Phê Duyệt, bạn chỉ có thể chuyển sang Đang Giao.",
     "Rejected orders cannot be changed.": "Đơn hàng bị từ chối không thể thay đổi.",
-    "From Delivering status, you can only mark as Delivered.": "Từ trạng thái Đang Giao, bạn chỉ có thể đánh dấu là Đã Giao."
+    "From Delivering status, you can only mark as Delivered.": "Từ trạng thái Đang Giao, bạn chỉ có thể đánh dấu là Đã Giao.",
+    "Shipping Fee": "Phí vận chuyển",
+    "more for free shipping!": "nữa để được miễn phí vận chuyển!",
+    "You got free shipping!": "Bạn được miễn phí vận chuyển!"
 }
