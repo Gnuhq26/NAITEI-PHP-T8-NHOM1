@@ -33,7 +33,28 @@ class UpdateCategoryRequest extends FormRequest
                 'max:255',
                 Rule::unique('categories', 'name')->ignore($categoryId, 'category_id')
             ],
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'name' => [
+                'description' => 'The updated name of the category.',
+                'required' => false,
+                'type' => 'string',
+                'example' => 'Updated Sofa',
+            ],
+            'image' => [
+                'description' => 'The new image file for the category (optional). If not provided, the existing image will be kept.',
+                'required' => false,
+                'type' => 'file',
+                'example' => 'new_category_image.png',
+            ],
         ];
     }
 }

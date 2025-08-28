@@ -169,7 +169,8 @@ class NotificationManager {
                         document.getElementById('order_detail_id').value = `#${order.order_id}`;
                         document.getElementById('order_detail_customer_name').value = customerName;
                         document.getElementById('order_detail_date').value = new Date(order.order_date).toLocaleDateString();
-                        document.getElementById('order_detail_total_amount').value = `${order.total_cost.toLocaleString()} VNĐ`;
+                        document.getElementById('order_detail_shipping_fee').value = `${new Intl.NumberFormat('vi-VN').format(order.shipping_fee)} VNĐ`; // Modified line
+                        document.getElementById('order_detail_total_amount').value = `${new Intl.NumberFormat('vi-VN').format(order.total_cost)} VNĐ`;
                         // Use translations from window.Laravel
                         const ucfirst = (str) => { if (!str) return ''; return str.charAt(0).toUpperCase() + str.slice(1); };
                         document.getElementById('order_detail_status').value = ucfirst(window.Laravel.translations[order.status] || 'Unknown Status');

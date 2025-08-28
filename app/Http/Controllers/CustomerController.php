@@ -70,7 +70,7 @@ class CustomerController extends Controller
             $query->orderBy('name', 'asc');
         }
         
-        $categories = $query->paginate(10);
+        $categories = $query->paginate(12)->withQueryString();
         
         return view('customer.pages.categories', compact('categories'));
     }
@@ -156,7 +156,7 @@ class CustomerController extends Controller
             $query->orderBy('name', 'asc');
         }
         
-        $products = $query->get();
+        $products = $query->paginate(12)->withQueryString();
         
         return view('customer.pages.products', compact('category', 'products'));
     }

@@ -226,6 +226,12 @@ class AdminController extends Controller
         return view('admin.pages.users', compact('users', 'roles'));
     }
 
+    /**
+     * @group Admin Categories
+     * @authenticated
+     * Trang quản lý danh mục sản phẩm.
+     * @response view admin.pages.categories
+     */
     public function categories()
     {
         // count products in each category
@@ -233,6 +239,15 @@ class AdminController extends Controller
         return view('admin.pages.categories', compact('categories'));
     }
 
+    /**
+     * @group Admin Categories
+     * @authenticated
+     * Tạo mới danh mục sản phẩm.
+     * @bodyParam name string required Tên danh mục. Example: Sofa
+     * @bodyParam image file Ảnh danh mục.
+     * @response 302 {"success": true}
+     * @response 422 {"message": "The given data was invalid.", "errors": {"name": ["The name has already been taken."]}}
+     */
     public function storeCategory(StoreCategoryRequest $request)
     {
         $validated = $request->validated();
@@ -254,6 +269,16 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * @group Admin Categories
+     * @authenticated
+     * Cập nhật danh mục sản phẩm.
+     * @urlParam category integer required The ID of the category to update. Example: 1
+     * @bodyParam name string Tên danh mục. Example: Updated Sofa
+     * @bodyParam image file Ảnh danh mục.
+     * @response 302 {"success": true}
+     * @response 422 {"message": "The given data was invalid.", "errors": {"name": ["The name has already been taken."]}}
+     */
     public function updateCategory(UpdateCategoryRequest $request, Category $category)
     {
         $validated = $request->validated();
@@ -270,6 +295,14 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * @group Admin Categories
+     * @authenticated
+     * Xóa danh mục sản phẩm.
+     * @urlParam category integer required The ID of the category to delete. Example: 1
+     * @response 302 {"success": true}
+     * @response 400 {"success": false, "message": "Cannot delete category with associated products."}
+     */
     public function deleteCategory(Category $category)
     {
         if (!$this->categoryRepository->deleteCategory($category->category_id)) {

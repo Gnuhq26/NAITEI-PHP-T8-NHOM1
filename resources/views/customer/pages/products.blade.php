@@ -148,17 +148,10 @@
     @endforelse
 </div>
 
-@if($products->count() > 12)
 <!-- Pagination -->
-<div class="pagination-wrapper">
-    <div class="pagination">
-        <button class="page-btn">1</button>
-        <button class="page-btn active">2</button>
-        <button class="page-btn">3</button>
-        <button class="page-btn">Next</button>
-    </div>
+<div style="margin-top: 20px; display: flex; justify-content: center;">
+    {{ $products->links('pagination.pagination') }}
 </div>
-@endif
 @endsection
 
 @push('styles')
