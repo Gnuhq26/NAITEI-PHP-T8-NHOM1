@@ -120,11 +120,17 @@
         <div class="order-summary-section">
             <div class="summary-row">
                 <span>{{ __('Items Total') }}</span>
-                <span>{{ number_format($order->orderItems->sum(function($item) { return $item->price * $item->quantity; }), 0, '.', ',') }} {{ __('VND') }}</span>
+                <span>{{ number_format($subtotal ?? $order->orderItems->sum(function($item) { return $item->price * $item->quantity; }), 0, '.', ',') }} {{ __('VND') }}</span>
             </div>
             <div class="summary-row">
                 <span>{{ __('Shipping') }}</span>
-                <span>{{ __('Free') }}</span>
+                <span class="{{ ($actualShippingFee ?? 0) == 0 ? 'free-shipping' : '' }}">
+                    @if(($actualShippingFee ?? 0) == 0)
+                        {{ __('Free') }}
+                    @else
+                        {{ number_format($actualShippingFee ?? 0, 0, '.', ',') }} {{ __('VND') }}
+                    @endif
+                </span>
             </div>
             <div class="summary-row total">
                 <span>{{ __('Total') }}</span>
@@ -448,6 +454,11 @@
     font-size: 20px;
     font-weight: 600;
     color: #B88E2F;
+}
+
+.free-shipping {
+    color: #16a34a !important;
+    font-weight: 600;
 }
 
 /* Actions Section */

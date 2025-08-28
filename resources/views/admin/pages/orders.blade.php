@@ -281,6 +281,20 @@
                     document.getElementById('order_detail_id').value = `#${order.order_id}`;
                     document.getElementById('order_detail_customer_name').value = customerName;
                     document.getElementById('order_detail_date').value = new Date(order.order_date).toLocaleDateString();
+                    
+                    // ship cost
+                    const shippingFee = order.shipping_fee || 0;
+                    const shippingElement = document.getElementById('order_detail_shipping_fee');
+                    if (shippingFee == 0) {
+                        shippingElement.value = '{{ __("Free") }}';
+                        shippingElement.style.color = '#16a34a';
+                        shippingElement.style.fontWeight = '600';
+                    } else {
+                        shippingElement.value = `${parseFloat(shippingFee).toLocaleString()} VNĐ`;
+                        shippingElement.style.color = '#333';
+                        shippingElement.style.fontWeight = 'normal';
+                    }
+                    
                     document.getElementById('order_detail_total_amount').value = `${order.total_cost.toLocaleString()} VNĐ`;
                     document.getElementById('order_detail_status').value = ucfirst(translations[order.status] || '{{ __("Unknown Status") }}'); 
 

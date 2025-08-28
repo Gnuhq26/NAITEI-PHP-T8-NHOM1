@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn(['payment_method', 'payment_status']);
+            $table->decimal('shipping_fee', 10, 2)->default(0)->after('total_cost');
         });
     }
 
@@ -22,8 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->enum('payment_method', ['cod', 'vietqr'])->default('cod');
-            $table->boolean('payment_status')->default(false);
+            $table->dropColumn('shipping_fee');
         });
     }
 };

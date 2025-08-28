@@ -375,11 +375,15 @@
                     <input type="text" id="order_detail_date" class="form-control" readonly>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">{{ __('Total Amount') }}</label>
-                    <input type="text" id="order_detail_total_amount" class="form-control" readonly>
+                    <label class="form-label">{{ __('Shipping Fee') }}</label>
+                    <input type="text" id="order_detail_shipping_fee" class="form-control" readonly>
                 </div>
             </div>
             <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">{{ __('Total Amount') }}</label>
+                    <input type="text" id="order_detail_total_amount" class="form-control" readonly>
+                </div>
                 <div class="form-group">
                     <label class="form-label">{{ __('Current Status') }}</label>
                     <input type="text" id="order_detail_status" class="form-control" readonly>

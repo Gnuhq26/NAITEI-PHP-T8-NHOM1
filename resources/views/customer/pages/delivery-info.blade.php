@@ -167,11 +167,21 @@
             </div>
             <div class="summary-row">
                 <span>{{ __('Delivery') }}</span>
-                <span class="free-delivery">{{ __('Free') }}</span>
+                @if(isset($shippingInfo))
+                    <span class="{{ $shippingInfo['is_free_shipping'] ? 'free-delivery' : '' }}">
+                        @if($shippingInfo['is_free_shipping'])
+                            {{ __('Free') }}
+                        @else
+                            {{ number_format($shippingInfo['shipping_fee'], 0, ',', '.') }} VND
+                        @endif
+                    </span>
+                @else
+                    <span class="free-delivery">{{ __('Free') }}</span>
+                @endif
             </div>
             <div class="summary-row total">
                 <span>{{ __('Total') }}</span>
-                <span>{{ number_format($totalPrice, 0, ',', '.') }} VND</span>
+                <span>{{ number_format($shippingInfo['total'] ?? $totalPrice, 0, '.', ',') }} VND</span>
             </div>
         </div>
     </div>

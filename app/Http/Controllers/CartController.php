@@ -3,10 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\ShippingService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+	protected $shippingService;
+
+	public function __construct(ShippingService $shippingService)
+	{
+		$this->shippingService = $shippingService;
+	}
+
 	/**
 	 * Display the cart page for customers.
 	 */
@@ -40,7 +48,16 @@ class CartController extends Controller
 
 		$request->session()->put('cart', $cart);
 
-		return view('customer.pages.cart', compact('cart', 'totalQuantity', 'totalPrice'));
+		$shippingInfo = $this->shippingService->getShippingInfo($totalPrice);
+		$amountForFreeShipping = $this->shippingService->getAmountForFreeShipping($totalPrice);
+
+		return view('customer.pages.cart', compact(
+			'cart', 
+			'totalQuantity', 
+			'totalPrice', 
+			'shippingInfo',
+			'amountForFreeShipping'
+		));
 	}
 
 	/**

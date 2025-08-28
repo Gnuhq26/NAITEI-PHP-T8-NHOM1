@@ -17,6 +17,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\CategoryRepository::class,
             \App\Repositories\EloquentCategoryRepository::class
         );
+
+        $this->app->singleton(\App\Services\ShippingService::class, function ($app) {
+            return new \App\Services\ShippingService();
+        });
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Order;
+use App\Services\ShippingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,6 +13,13 @@ class CustomerController extends Controller
 {
     const ORDER_STATUSES_ACTIVE = ['pending', 'approved', 'delivering'];
     const ORDER_STATUSES_HISTORY = ['rejected', 'cancelled', 'delivered'];
+    
+    protected $shippingService;
+
+    public function __construct(ShippingService $shippingService)
+    {
+        $this->shippingService = $shippingService;
+    }
     
     /**
      * Display the home page for customers
@@ -227,7 +235,21 @@ class CustomerController extends Controller
               ->where('customer_id', $customer->id)
               ->findOrFail($orderId);
         
-        return view('customer.pages.order-details', compact('order'));
+        $subtotal = $order->orderItems->sum(function($item) {
+            return $item->price * $item->quantity;
+        });
+        
+        // shipping info 
+        $shippingInfo = $this->shippingService->getShippingInfo($subtotal);
+        
+        // if order has shipping_fee, use it; otherwise, use calculated
+        if ($order->shipping_fee !== null) {
+            $actualShippingFee = $order->shipping_fee;
+        } else {
+            $actualShippingFee = $shippingInfo['shipping_fee'];
+        }
+        
+        return view('customer.pages.order-details', compact('order', 'shippingInfo', 'actualShippingFee', 'subtotal'));
     }
 
     public function cancelOrder($orderId, Request $request)
