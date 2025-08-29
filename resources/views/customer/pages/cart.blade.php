@@ -98,24 +98,34 @@
 		@if(isset($shippingInfo))
 			<div class="summary-row">
 				<span>{{ __('Shipping Fee') }}</span>
-				<span class="{{ $shippingInfo['is_free_shipping'] ? 'free-shipping' : '' }}">
-					@if($shippingInfo['is_free_shipping'])
+				<span class="{{ $shippingInfo['shipping_fee'] == 0 ? 'free-shipping' : '' }}">
+					@if($shippingInfo['shipping_fee'] == 0)
 						{{ __('Free') }}
 					@else
 						{{ number_format($shippingInfo['shipping_fee'], 0, '.', ',') }} {{ __('VND') }}
 					@endif
 				</span>
 			</div>
-			
-			@if(isset($amountForFreeShipping) && $amountForFreeShipping > 0)
-				<div class="free-shipping-notice">
-					<i class="fas fa-truck"></i>
-					{{ __('Add') }} {{ number_format($amountForFreeShipping, 0, '.', ',') }} {{ __('VND') }} {{ __('more for free shipping!') }}
-				</div>
-			@elseif($shippingInfo['is_free_shipping'])
+
+			@if($shippingInfo['shipping_fee'] == 0)
 				<div class="free-shipping-notice success">
 					<i class="fas fa-check-circle"></i>
 					{{ __('You got free shipping!') }}
+				</div>
+			@elseif($shippingInfo['shipping_fee'] == 200000)
+				<div class="free-shipping-notice">
+					<i class="fas fa-truck"></i>
+					{{ __('Order from 5 to 10 million: Shipping fee 200,000 VND') }}
+				</div>
+			@elseif($shippingInfo['shipping_fee'] == 500000)
+				<div class="free-shipping-notice">
+					<i class="fas fa-truck"></i>
+					{{ __('Order from 10 to 20 million: Shipping fee 500,000 VND') }}
+				</div>
+			@elseif($shippingInfo['shipping_fee'] == 800000)
+				<div class="free-shipping-notice">
+					<i class="fas fa-truck"></i>
+					{{ __('Order over 20 million: Shipping fee 800,000 VND') }}
 				</div>
 			@endif
 		@endif
@@ -376,4 +386,4 @@
     }
 }
 </style>
-@endpush 
+@endpush

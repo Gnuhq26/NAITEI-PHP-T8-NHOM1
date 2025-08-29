@@ -23,8 +23,29 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:categories,name',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'name' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($this->category)],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'name' => [
+                'description' => 'The name of the category.',
+                'required' => true,
+                'type' => 'string',
+                'example' => 'Sofa',
+            ],
+            'image' => [
+                'description' => 'The image file for the category.',
+                'required' => false,
+                'type' => 'file',
+                'example' => 'category_image.jpg',
+            ],
         ];
     }
 }

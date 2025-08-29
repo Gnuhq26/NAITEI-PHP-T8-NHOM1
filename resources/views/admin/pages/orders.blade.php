@@ -295,7 +295,7 @@
                         shippingElement.style.fontWeight = 'normal';
                     }
                     
-                    document.getElementById('order_detail_total_amount').value = `${order.total_cost.toLocaleString()} VNĐ`;
+                    document.getElementById('order_detail_total_amount').value = `${new Intl.NumberFormat('vi-VN').format(order.total_cost)} VNĐ`;
                     document.getElementById('order_detail_status').value = ucfirst(translations[order.status] || '{{ __("Unknown Status") }}'); 
 
                     // Populate order items list

@@ -102,6 +102,9 @@
     </div>
 </div>
 @endif
+<div style="margin-top: 20px; display: flex; justify-content: center;">
+    {{ $categories->links('pagination.pagination') }}
+</div>
 @endsection
 
 @push('styles')
